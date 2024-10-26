@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Derivadas e Integrales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            background-color: #fff29f;
+        }
+        .math-symbol {
+            font-style: italic;
+        }
+        .option-button {
+            background-color: #fff29f; /* Amarillo */
+            border: 1px solid #ffd685; /* Amarillo oscuro */
+        }
+        .incorrect-answer {
+            color: red; /* Color rojo para las respuestas incorrectas */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden border-2 border-gray-300 p-6">
+        <h1 class="text-2xl font-bold text-center mb-4 text-gray-700">📐 Derivadas e Integrales</h1>
+        <p class="text-center text-gray-600 mb-6">¡Selecciona la respuesta correcta!</p>
+        <div id="quiz-container"></div>
+        <button id="next-question" class="mt-6 w-full bg-blue-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-500 hidden">Siguiente</button>
+    </div>
+
+    <!-- Script del Juego -->
+    <script>
+        // Datos de las preguntas de derivadas e integrales
+        const allQuestions = [
+            // Preguntas de derivadas
+            { question: "¿Cuál es la derivada de una constante \\( c \\)?", correctAnswer: "0", options: ["\\( c \\)", "\\( 1 \\)", "0", "\\( c + x \\)", "\\( c \\cdot x \\)"] },
+            { question: "¿Cuál es la derivada de \\( x^n \\)?", correctAnswer: "\\( n \\cdot x^{n-1} \\)", options: ["\\( x^n \\)", "\\( n \\cdot x^{n-1} \\)", "\\( n \\cdot x \\)", "\\( x^{n+1} \\)", "\\( x^{n-1} \\)"] },
+            { question: "¿Cuál es la derivada de \\( e^x \\)?", correctAnswer: "\\( e^x \\)", options: ["\\( e^x \\)", "\\( x \\cdot e^x \\)", "\\( \\ln(x) \\)", "\\( e^{x+1} \\)", "0"] },
+            { question: "¿Cuál es la derivada de \\( \\ln(x) \\)?", correctAnswer: "\\( \\frac{1}{x} \\)", options: ["\\( \\ln(x) \\cdot x \\)", "\\( \\frac{1}{x} \\)", "\\( e^x \\)", "\\( x^2 \\)", "\\( \\ln|x| \\)"] },
+            { question: "¿Cuál es la derivada de \\( \\sin(x) \\)?", correctAnswer: "\\( \\cos(x) \\)", options: ["\\( \\cos(x) \\)", "\\( \\sin(x) \\)", "\\( -\\cos(x) \\)", "\\( \\tan(x) \\)", "1"] },
+            { question: "¿Cuál es la derivada de \\( \\cos(x) \\)?", correctAnswer: "\\( -\\sin(x) \\)", options: ["\\( \\sin(x) \\)", "\\( -\\sin(x) \\)", "\\( \\cos(x) \\)", "\\( -\\cos(x) \\)", "1"] },
+            { question: "¿Cuál es la derivada de \\( \\tan(x) \\)?", correctAnswer: "\\( \\sec^2(x) \\)", options: ["\\( \\sec(x) \\)", "\\( \\frac{1}{\\cos(x)} \\)", "\\( \\sec^2(x) \\)", "\\( \\tan^2(x) \\)", "\\( \\cos(x) \\)"] },
+            { question: "¿Cuál es la derivada de \\( a^x \\)?", correctAnswer: "\\( a^x \\ln(a) \\)", options: ["\\( a^x \\)", "\\( x \\ln(a) \\)", "\\( a^x \\ln(a) \\)", "\\( a \\cdot x^a \\)", "\\( \\ln(x) \\)"] },
+            { question: "¿Cuál es la derivada de \\( \\sinh(x) \\)?", correctAnswer: "\\( \\cosh(x) \\)", options: ["\\( \\sinh(x) \\)", "\\( \\cosh(x) \\)", "\\( -\\sinh(x) \\)", "\\( \\tanh(x) \\)", "1"] },
+            { question: "¿Cuál es la derivada de \\( \\cosh(x) \\)?", correctAnswer: "\\( \\sinh(x) \\)", options: ["\\( \\sinh(x) \\)", "\\( -\\cosh(x) \\)", "\\( \\cosh(x) \\)", "\\( \\tanh(x) \\)", "1"] },
+            // Preguntas de integrales
+            { question: "¿Cuál es la integral de una constante \\( c \\)?", correctAnswer: "\\( c \\cdot x + C \\)", options: ["\\( c \\)", "\\( c \\cdot x \\)", "\\( c \\cdot x + C \\)", "\\( \\ln(c)  \\)", "\\( \\frac{1}{c} \\)"] },
+            { question: "¿Cuál es la integral de \\( x^n \\)?", correctAnswer: "\\( \\frac{x^{n+1}}{n+1} + C \\; (n \\neq -1) \\)", options: ["\\( \\frac{x^{n+1}}{n+1} + C \\; (n \\neq -1) \\)", "\\( n \\cdot x^{n+1} \\)", "\\( \\frac{x^{n+1}}{n+1} \\)", "\\( \\frac{x^{n+1}}{n} \\)", "\\( x^{n+1} \\)"] },
+            { question: "¿Cuál es la integral de \\( e^x \\)?", correctAnswer: "\\( e^x + C \\)", options: ["\\( e^x + C \\)", "\\( x \\cdot e^x \\)", "\\( \\ln|x| + C \\)", "\\( x + C \\)", "\\( \\frac{1}{e^x} \\)"] },
+            { question: "¿Cuál es la integral de \\( \\ln(x) \\)?", correctAnswer: "\\( x \\ln(x) - x + C \\)", options: ["\\( \\ln(x) \\)", "\\( x \\ln(x) - x + C \\)", "\\( \\ln|x| + C \\)", "\\( x + \\ln(x) \\)", "\\( \\frac{1}{\\ln(x)} \\)"] },
+            { question: "¿Cuál es la integral de \\( \\sin(x) \\)?", correctAnswer: "\\( -\\cos(x) + C \\)", options: ["\\( \\cos(x) \\)", "\\( -\\cos(x) + C \\)", "\\( x \\sin(x) \\)", "\\( -x + C \\)", "\\( \\sin(x) + C \\)"] },
+            { question: "¿Cuál es la integral de \\( \\cos(x) \\)?", correctAnswer: "\\( \\sin(x) + C \\)", options: ["\\( -\\cos(x) \\)", "\\( \\sin(x) + C \\)", "\\( -\\sin(x) \\)", "\\( x + C \\)", "\\( \\cos(x) + C \\)"] },
+            { question: "¿Cuál es la integral de \\( \\tan(x) \\)?", correctAnswer: "\\( -\\ln|\\cos(x)| + C \\)", options: ["\\( \\ln|\\sin(x)| + C \\)", "\\( -\\ln|\\cos(x)| + C \\)", "\\( \\frac{1}{\\cos(x)} \\)", "\\( -\\cos(x) + C \\)", "\\( \\tan(x) + C \\)"] },
+            { question: "¿Cuál es la integral de \\( a^x \\)?", correctAnswer: "\\( \\frac{a^x}{\\ln(a)} + C \\)", options: ["\\( a^x \\)", "\\( \\ln(a) + C \\)", "\\( \\frac{a^x}{\\ln(a)} + C \\)", "\\( a^x + C \\)", "\\( e^x + C \\)"] },
+            { question: "¿Cuál es la integral de \\( \\sinh(x) \\)?", correctAnswer: "\\( \\cosh(x) + C \\)", options: ["\\( \\sinh(x) \\)", "\\( \\cosh(x) + C \\)", "\\( -\\cosh(x) \\)", "\\( 1 + C \\)", "\\( e^x + C \\)"] },
+            { question: "¿Cuál es la integral de \\( \\cosh(x) \\)?", correctAnswer: "\\( \\sinh(x) + C \\)", options: ["\\( \\sinh(x) + C \\)", "\\( -\\sinh(x) + C \\)", "\\( \\cosh(x) + C \\)", "\\( 1 + C \\)", "\\( e^x + C \\)"] }
+        ];
+
+        let currentQuestionIndex = 0;
+        let wrongAnswers = []; // Array para guardar respuestas incorrectas
+
+        function loadQuestion() {
+            const question = allQuestions[currentQuestionIndex];
+            const quizContainer = document.getElementById("quiz-container");
+            quizContainer.innerHTML = `
+                <h2 class="text-xl font-semibold text-gray-800">${question.question}</h2>
+                <div class="mt-4 flex flex-col space-y-2">
+                    ${question.options.map((option) => `
+                        <button class="option-button text-gray-700 font-medium py-2 px-4 rounded-lg" onclick="checkAnswer('${option}', '${question.correctAnswer}')">
+                            ${option}
+                        </button>
+                    `).join("")}
+                </div>
+            `;
+            MathJax.typeset(); // Renderizar las ecuaciones
+        }
+
+        function checkAnswer(selectedAnswer, correctAnswer) {
+            const quizContainer = document.getElementById("quiz-container");
+            if (selectedAnswer === correctAnswer) {
+                quizContainer.innerHTML += `<p class="text-green-500 font-semibold mt-4">¡Correcto!</p>`;
+            } else {
+                // Mostrar la respuesta correcta de forma adecuada
+                quizContainer.innerHTML += `<p class="incorrect-answer font-semibold mt-4">Incorrecto.</p>`;
+                wrongAnswers.push(correctAnswer); // Añadir respuesta incorrecta al array
+            }
+            document.getElementById("next-question").classList.remove("hidden");
+            document.getElementById("next-question").disabled = false;
+            
+            // Esperar a que MathJax termine de procesar antes de mostrar el siguiente botón
+            MathJax.typeset().then(() => {
+                // No hay nada más que hacer aquí, pero se puede usar si se quiere añadir lógica después de procesar
+            });
+        }
+
+        document.getElementById("next-question").addEventListener("click", () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < allQuestions.length) {
+                loadQuestion();
+                document.getElementById("next-question").classList.add("hidden");
+            } else {
+                displayFinalResults();
+            }
+        });
+
+        function displayFinalResults() {
+            const quizContainer = document.getElementById("quiz-container");
+            quizContainer.innerHTML = `<h2 class="text-xl font-semibold text-gray-800">¡Juego terminado!</h2>`;
+            if (wrongAnswers.length > 0) {
+                quizContainer.innerHTML += `<p class="incorrect-answer font-semibold mt-4">Respuestas incorrectas:</p>`;
+                wrongAnswers.forEach(answer => {
+                    quizContainer.innerHTML += `<p class="incorrect-answer">\$begin:math:text$${answer}\\$end:math:text$</p>`;
+                });
+            } else {
+                quizContainer.innerHTML += `<p class="text-green-500 font-semibold mt-4">¡Felicidades! No has cometido errores.</p>`;
+            }
+            document.getElementById("next-question").classList.add("hidden");
+            MathJax.typeset(); // Renderizar las soluciones al final del juego
+        }
+
+        // Cargar la primera pregunta al inicio
+        loadQuestion();
+    </script>
+</body>
+</html>
